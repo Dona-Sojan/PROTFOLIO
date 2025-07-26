@@ -1,0 +1,298 @@
+<!DOCTYPE html><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dona Sojan</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg ">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">@its me dona</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="material-symbols-outlined">Sort</span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="http://127.0.0.1:5500/">Home</a>
+
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="http://127.0.0.1:5500/About.html">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="http://127.0.0.1:5500/Timeline.html">Timeline</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link " href="http://127.0.0.1:5500/projects.html">projects</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="http://127.0.0.1:5500/blog.html">blog</a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .event-form input, .event-form textarea {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .event-form button {
+      padding: 10px 20px;
+      background: #0078D7;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .event-entry {
+      border-bottom: 1px solid #ccc;
+      padding: 20px 0;
+      position: relative;
+    }
+    .event-entry h3 {
+      margin-bottom: 8px;
+      color: #0078D7;
+    }
+    .event-entry section {
+      margin: 10px 0;
+    }
+    .event-entry ul {
+      padding-left: 20px;
+      margin: 5px 0;
+    }
+    .image-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .image-group img {
+      max-width: 120px;
+      border-radius: 6px;
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
+    .image-group img:hover {
+      transform: scale(1.05);
+    }
+    .delete-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: crimson;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📝 Add Blog Entry</h2>
+    <div class="event-form">
+      <input type="text" id="eventTitle" placeholder="Event Title">
+      <input type="text" id="eventRole" placeholder="Your Role">
+      <input type="text" id="eventTheme" placeholder="Event Theme">
+      <textarea id="eventDescription" placeholder="Event Overview / Highlights"></textarea>
+      <input type="date" id="eventDate">
+      <input type="file" id="eventImages" multiple accept="image/*">
+      <button type="button" id="addEntryBtn">Add Entry</button>
+    </div>
+
+    <h3>📚 Blog Entries</h3>
+    <div id="eventEntries"></div>
+  </div>
+
+  <div class="modal" id="modal">
+    <img id="modalImg" src="">
+  </div>
+
+  <script>
+    // Convert file to base64
+    function convertToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }// Load existing entries on page load
+window.onload = function () {
+  const saved = JSON.parse(localStorage.getItem("entries")) || [];
+  saved.forEach((entry, index) => renderEntry(entry, index));
+};
+
+    // Load existing entries on page load 
+
+   
+    // Add new blog entry
+    async function addEntry() {
+      try {
+        const title = document.getElementById("eventTitle").value.trim();
+        const role = document.getElementById("eventRole").value.trim();
+        const theme = document.getElementById("eventTheme").value.trim();
+        const desc = document.getElementById("eventDescription").value.trim();
+        const date = document.getElementById("eventDate").value;
+        const images = document.getElementById("eventImages").files;
+
+if (!title || !role || !theme || !desc || !date || images.length === 0) {
+  alert("Please fill all fields and upload at least one image.");
+  return;
+}
+
+        const base64Images = [];
+        for (let file of images) {
+          base64Images.push(await convertToBase64(file));
+        }
+
+        const newEntry = { title, role, theme, desc, date, images: base64Images };
+        const currentEntries = JSON.parse(localStorage.getItem("entries")) || [];
+        currentEntries.push(newEntry);
+        localStorage.setItem("entries", JSON.stringify(currentEntries));
+
+        renderEntry(newEntry);
+        document.querySelector(".event-form").reset();
+      } catch (err) {
+        console.error("Error adding entry:", err);
+        alert("Something went wrong while adding the entry.");
+      }
+    }
+
+function renderEntry(entry, index) {
+  const entryDiv = document.createElement("div");
+  entryDiv.className = "event-entry";
+
+  const imgHTML = entry.images.map(src =>
+    `<img src="${src}" onclick="zoom('${src}')">`
+  ).join("");
+const ownerButtons = isOwner
+  ? `<button class="delete-btn" onclick="deleteEntry(this)">Delete</button>
+     <button class="delete-btn" style="top: 60px; background: #0078D7;" onclick="addImages(${index})">Add Images</button>`
+  : "";
+  
+
+  entryDiv.innerHTML = `
+    ${ownerButtons}
+    <h3>${entry.title}</h3>
+    <section><strong>Date:</strong> ${entry.date}</section>
+    <section><strong>Role:</strong> ${entry.role}</section>
+    <section><strong>Theme:</strong> ${entry.theme}</section>
+    <section><strong>Overview:</strong><p>${entry.desc}</p></section>
+    <section><strong>Key Highlights:</strong>
+      <ul>
+        <li>Designed and executed themed challenges</li>
+        <li>Managed over 100+ participants</li>
+        <li>Received appreciation for immersive experience</li>
+      </ul>
+    </section>
+    <section><strong>Skills Gained:</strong>
+      <ul>
+        <li>Event Management</li>
+        <li>Team Coordination</li>
+        <li>Creative Planning</li>
+      </ul>
+    </section>
+    <div class="image-group">${imgHTML}</div>
+  `;
+
+  document.getElementById("eventEntries").appendChild(entryDiv);
+}
+    // Delete blog entry
+    function deleteEntry(button) {
+      const entry = button.closest(".event-entry");
+      const index = Array.from(document.querySelectorAll(".event-entry")).indexOf(entry);
+      const entries = JSON.parse(localStorage.getItem("entries")) || [];
+      if (confirm("Remove this entry?")) {
+        entries.splice(index, 1);
+        localStorage.setItem("entries", JSON.stringify(entries));
+        entry.remove();
+      }
+    }
+// Owner flag
+ const isOwner = window.location.search.includes("owner=true");
+//const isOwner = true; // Set to false for public view
+
+// Add more images to an entry
+function addImages(index) {
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.multiple = true;
+
+  fileInput.onchange = async function () {
+    const newFiles = fileInput.files;
+    const entries = JSON.parse(localStorage.getItem("entries")) || [];
+    const base64NewImages = [];
+
+    for (let file of newFiles) {
+      base64NewImages.push(await convertToBase64(file));
+    }
+
+    entries[index].images = [...entries[index].images, ...base64NewImages];
+    localStorage.setItem("entries", JSON.stringify(entries));
+    document.getElementById("eventEntries").innerHTML = ""; // Clear existing
+    entries.forEach(renderEntry); // Re-render all entries
+  };
+
+  fileInput.click();
+}
+    // Zoom image modal
+    function zoom(src) {
+      document.getElementById("modalImg").src = src;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    document.getElementById("modal").onclick = () => {
+      document.getElementById("modal").style.display = "none";
+    };
+
+    // Add entry button listener
+    document.getElementById("addEntryBtn").addEventListener("click", addEntry);
+  </script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" 
+  integrity="sha384-IySNPBpqxnQcDk8Bps/Y0uLPnToTdTJPANt92pRzjtkzEi4RHh9ZSvCyD5gNShOE" 
+  crossorigin="anonymous"></script>
+</body>
+</html>
